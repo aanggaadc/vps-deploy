@@ -1,6 +1,6 @@
 # Server Provisioning and Setup Guide (Ubuntu 22.04)
 
-This guide outlines the steps to provision an Ubuntu 22.04 server with Nginx, Node.js, Yarn, Git, PM2, and Certbot. Additionally, it includes configuring a reverse proxy using Nginx.
+This guide outlines the steps to provision an Ubuntu 22.04 server with Nginx, Node.js, Yarn, Git, PM2, and Certbot. Additionally, it includes configuring a reverse proxy using Nginx and setting up SSL with auto-renewal.
 
 ## Table of Contents
 - [Install Nginx](#install-nginx)
@@ -9,7 +9,9 @@ This guide outlines the steps to provision an Ubuntu 22.04 server with Nginx, No
 - [Install Git](#install-git)
 - [Install PM2](#install-pm2)
 - [Install Certbot](#install-certbot)
+- [Auto Renewal of SSL Certificate](#auto-renewal-of-ssl-certificate)
 - [Configure Nginx Reverse Proxy](#configure-nginx-reverse-proxy)
+- [Obtain SSL Certificate](#obtain-ssl-certificate)
 
 ## Install Nginx
 1. Login via SSH:
@@ -104,6 +106,38 @@ This guide outlines the steps to provision an Ubuntu 22.04 server with Nginx, No
     ```sh
     sudo apt install certbot python3-certbot-nginx
     ```
+## Obtain SSL Certificate
+1. Run Certbot to obtain an SSL certificate:
+    ```sh
+    sudo certbot --nginx -d domainname.com
+    ```
+2. Restart Nginx:
+    ```sh
+    sudo systemctl restart nginx
+    ```
+3. Restart the application with PM2:
+    ```sh
+    pm2 restart app_name
+    ```
+
+## Auto Renewal of SSL Certificate
+1. Open crontab to schedule auto-renewal:
+    ```sh
+    sudo crontab -e
+    ```
+2. Insert the following line to renew the certificate on the 1st of every month:
+    ```cron
+    PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+    0 0 1 * * certbot renew >> /logs/certbot-cron.log 2>&1
+    ```
+    [Reference](https://crontab.guru/#0_0_1_*_*)
+3. Save and exit the crontab editor.
+4. Restart Nginx:
+    ```sh
+    sudo systemctl restart nginx
+    ```
+
 
 ## Configure Nginx Reverse Proxy
 1. Navigate to the Nginx sites-available directory:
@@ -143,3 +177,4 @@ This guide outlines the steps to provision an Ubuntu 22.04 server with Nginx, No
     ```sh
     sudo systemctl restart nginx
     ```
+
